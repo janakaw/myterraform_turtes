@@ -2,9 +2,9 @@ terraform {
   # Assumes s3 bucket and dynamo DB table already set up
   # See /code/03-basics/aws-backend
   backend "s3" {
-    bucket         = "devops-directive-tf-state"
+    bucket         = "devops-directive-tf-state-janaka"
     key            = "03-basics/web-app/terraform.tfstate"
-    region         = "us-east-1"
+    region         = "ap-southeast-2"
     dynamodb_table = "terraform-state-locking"
     encrypt        = true
   }
@@ -18,11 +18,11 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-1"
+  region = "ap-southeast-2"
 }
 
 resource "aws_instance" "instance_1" {
-  ami             = "ami-011899242bb902164" # Ubuntu 20.04 LTS // us-east-1
+  ami             = "ami-0361bbf2b99f46c1d" # Ubuntu 20.04 LTS // us-east-1
   instance_type   = "t2.micro"
   security_groups = [aws_security_group.instances.name]
   user_data       = <<-EOF
@@ -33,9 +33,10 @@ resource "aws_instance" "instance_1" {
 }
 
 resource "aws_instance" "instance_2" {
-  ami             = "ami-011899242bb902164" # Ubuntu 20.04 LTS // us-east-1
+  ami             = "ami-0361bbf2b99f46c1d" # Ubuntu 20.04 LTS // us-east-1
   instance_type   = "t2.micro"
   security_groups = [aws_security_group.instances.name]
+  associate_public_ip_address = "true"
   user_data       = <<-EOF
               #!/bin/bash
               echo "Hello, World 2" > index.html
@@ -44,7 +45,7 @@ resource "aws_instance" "instance_2" {
 }
 
 resource "aws_s3_bucket" "bucket" {
-  bucket_prefix = "devops-directive-web-app-data"
+  bucket_prefix = "devops-directive-web-app-data-janaka"
   force_destroy = true
 }
 
@@ -183,24 +184,11 @@ resource "aws_lb" "load_balancer" {
   load_balancer_type = "application"
   subnets            = data.aws_subnet_ids.default_subnet.ids
   security_groups    = [aws_security_group.alb.id]
-
 }
 
-resource "aws_route53_zone" "primary" {
-  name = "devopsdeployed.com"
-}
 
-resource "aws_route53_record" "root" {
-  zone_id = aws_route53_zone.primary.zone_id
-  name    = "devopsdeployed.com"
-  type    = "A"
 
-  alias {
-    name                   = aws_lb.load_balancer.dns_name
-    zone_id                = aws_lb.load_balancer.zone_id
-    evaluate_target_health = true
-  }
-}
+
 
 resource "aws_db_instance" "db_instance" {
   allocated_storage = 20

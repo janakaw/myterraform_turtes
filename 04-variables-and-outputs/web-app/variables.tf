@@ -3,7 +3,7 @@
 variable "region" {
   description = "Default region for provider"
   type        = string
-  default     = "us-east-1"
+  default     = "ap-southeast-2"
 }
 
 # EC2 Variables
